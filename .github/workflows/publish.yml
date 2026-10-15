@@ -1,0 +1,66 @@
+name: Publish
+
+# Builds and publishes the signed catalog to GitHub Pages:
+#   - on every merge to main (a new or changed blueprint, a merged submission,
+#     listing text), and
+#   - every Monday, so the index (30-day expiry) is always re-signed weeks
+#     before it could expire. Nobody has to remember anything.
+#
+# The release key is the secret NUDAY_RELEASE_KEY (the PEM text) on the
+# `catalog-release` Environment, whose deployment branches are limited to main.
+# Pull requests and other branches never see it. Only public, signed output
+# leaves the build job.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 15 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: catalog-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: '3.13', enable-cache: true }
+      - run: uv sync
+      - name: Build and sign the catalog
+        env:
+          NUDAY_RELEASE_KEY: ${{ secrets.NUDAY_RELEASE_KEY }}
+          CATALOG_URL: ${{ vars.CATALOG_URL || 'https://nuday-ai.github.io/nuday-blueprints/v1/index.json' }}
+        run: |
+          if [ -z "$NUDAY_RELEASE_KEY" ]; then
+            echo "::error::The NUDAY_RELEASE_KEY secret is not set on the catalog-release environment."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/release.pem"
+          umask 077
+          printf '%s\n' "$NUDAY_RELEASE_KEY" > "$key"
+          uv run python scripts/publish.py --key "$key" --published "$CATALOG_URL"
+          rm -f "$key"
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}v1/index.json
+    steps:
+      - uses: actions/configure-pages@v5
+      - id: deploy
+        uses: actions/deploy-pages@v4

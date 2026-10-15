@@ -1,0 +1,25 @@
+name: CI
+
+# Pull requests: build the whole catalog exactly as Publish would, but signed
+# with a throwaway key (pull requests never see the release key). Fails on an
+# invalid blueprint or submission, and on changed content under a version that
+# is already live (bump metadata.version).
+
+on:
+  pull_request: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: '3.13', enable-cache: true }
+      - run: uv sync
+      - name: Build the catalog (throwaway key)
+        env:
+          CATALOG_URL: ${{ vars.CATALOG_URL || 'https://nuday-ai.github.io/nuday-blueprints/v1/index.json' }}
+        run: uv run python scripts/publish.py --dry-run-key --published "$CATALOG_URL"

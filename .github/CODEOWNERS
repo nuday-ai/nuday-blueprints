@@ -1,0 +1,4 @@
+# Merging a change here publishes it under NuDay's release key, and merging a
+# submission IS its review: a code owner must approve (enforced by the main
+# branch ruleset).
+*   @ehallmark

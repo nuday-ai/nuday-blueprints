@@ -1,0 +1,7 @@
+# Private keys never belong in this repository.
+*.pem
+*.key
+.venv/
+__pycache__/
+# The site is built from source by scripts/publish.py on every publish.
+_site/

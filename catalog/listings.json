@@ -1,0 +1,7 @@
+{
+  "hello-world": {
+    "title": "Hello World",
+    "description": "A friendly first agent that says hello and explains what NuDay blueprints are. No tools, no secrets: a safe first install.",
+    "tags": ["starter", "example"]
+  }
+}

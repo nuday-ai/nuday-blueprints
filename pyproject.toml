@@ -1,0 +1,19 @@
+[project]
+name = "nuday-blueprints"
+version = "0.1.0"
+description = "The NuDay Blueprints catalog: official and reviewed blueprints, and the signed marketplace index."
+requires-python = ">=3.13"
+dependencies = ["nuday"]
+
+# `nuday` is hosted on NuDay's private PyPI index; everything else resolves from
+# public PyPI. `explicit = true` keeps the private index for nuday only (see
+# agent-template/pyproject.toml for why).
+[[tool.uv.index]]
+name = "nuday-pypi"
+url = "https://pypi.app.nuday.ai/simple/"
+explicit = true
+
+[tool.uv.sources]
+nuday = { index = "nuday-pypi" }
+# Local nuday development (takes precedence over the index):
+# nuday = { path = "../nuday", editable = true }

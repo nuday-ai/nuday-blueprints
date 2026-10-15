@@ -1,0 +1,11 @@
+apiVersion: nuday.ai/blueprint/v1
+kind: Blueprint
+metadata:
+  name: hello-world
+  version: 1.0.0
+  description: A friendly first agent that says hello and explains what NuDay blueprints are
+root: agent/hello-world
+policy:
+  adopt: by-name
+  drift: report
+  prune: false
